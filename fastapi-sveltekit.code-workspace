@@ -1,0 +1,31 @@
+{
+  "folders": [
+    {
+      "name": "root",
+      "path": "."
+    },
+    {
+      "name": "backend (FastAPI)",
+      "path": "backend"
+    },
+    {
+      "name": "frontend (SvelteKit)",
+      "path": "frontend"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "backend": true,
+      "frontend": true
+    },
+    "editor.formatOnSave": true,
+    "python.languageServer": "None"
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "charliermarsh.ruff",
+      "astral-sh.ty"
+    ]
+  }
+}

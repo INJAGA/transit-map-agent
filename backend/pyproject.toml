@@ -1,0 +1,30 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "INJAGA", email = "47142905+INJAGA@users.noreply.github.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.162.0",
+]
+
+[tool.ty.environment]
+# エディタの ty 拡張は multi-root workspace 全体の Python を渡してくるので、backend の .venv を明示する
+python = ".venv"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D203", "D213", # D211 / D212 と矛盾するので片方を外す
+    "COM812",       # ruff format と衝突する
+    "CPY001",       # 全ファイルに著作権表記を書く運用はしない
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.3",
+    "ty>=0.0.97",
+]
