@@ -7,6 +7,8 @@
 	import type { GeoJsonLayer as GeoJsonLayerType } from '@deck.gl/layers';
 	import type { Feature } from 'geojson';
 	import { basemapNames, uiState } from '#lib/agent/ui-state.svelte.js';
+	import { mapHolder } from '#lib/agent/tools/capture-map.js';
+	import { transitLayers } from '#lib/transit-layers.js';
 
 	const osm: StyleSpecification = {
 		version: 8,
@@ -27,29 +29,6 @@
 		Positron: 'https://tiles.openfreemap.org/styles/positron',
 		Bright: 'https://tiles.openfreemap.org/styles/bright'
 	};
-
-	// static/data/ のデータは scripts/build-transit-data.py で作る（国土数値情報, 静岡県分）
-	// color はアイコンの Tailwind 色（*-600）と同じ RGB
-	const transitLayers = [
-		{
-			id: 'railways',
-			label: '鉄道',
-			icon: 'icon-[tabler--train] text-red-600',
-			color: [220, 38, 38]
-		},
-		{
-			id: 'bus-routes',
-			label: 'バスルート',
-			icon: 'icon-[tabler--route] text-blue-600',
-			color: [37, 99, 235]
-		},
-		{
-			id: 'bus-stops',
-			label: 'バス停',
-			icon: 'icon-[tabler--bus-stop] text-orange-600',
-			color: [234, 88, 12]
-		}
-	] as const;
 
 	function tooltipText(layerId: string | undefined, p: NonNullable<Feature['properties']>) {
 		if (layerId === 'railways') return `${p.name}\n${p.operator}（${p.type}）`;
@@ -95,6 +74,7 @@
 					style: basemaps[basemap],
 					center: [longitude, latitude],
 					zoom,
+					canvasContextAttributes: { preserveDrawingBuffer: true },
 					attributionControl: {
 						customAttribution:
 							'出典: <a href="https://nlftp.mlit.go.jp/ksj/">国土数値情報</a>（国土交通省）を加工して作成'
@@ -110,6 +90,8 @@
 				m.on('dragstart', () => ((dragging = true), updateCursor()));
 				m.on('dragend', () => ((dragging = false), updateCursor()));
 				overlay = new MapboxOverlay({
+					// capture_map が好きなときに canvas を読めるよう、描画後もバッファを残す
+					deviceProps: { webgl: { preserveDrawingBuffer: true } },
 					getTooltip: tooltip,
 					// 細い線でもホバーしやすくする
 					pickingRadius: 4,
@@ -122,12 +104,14 @@
 					uiState.mapView = { longitude: lng, latitude: lat, zoom: m.getZoom() };
 				});
 				GeoJsonLayer = layers.GeoJsonLayer;
-				map = m;
+				mapHolder.overlay = overlay;
+				map = mapHolder.map = m;
 			}
 		);
 		return () => {
 			disposed = true;
 			map?.remove();
+			mapHolder.map = mapHolder.overlay = undefined;
 		};
 	});
 

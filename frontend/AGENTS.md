@@ -13,6 +13,7 @@
 - frontend tool（ブラウザで実行するツール）を足す: `src/lib/agent/tools/` に1ツール1ファイルで作り、`defineTool` で書いて `tools/index.ts` の `frontendTools` に追加する。
   - スキーマは Zod で書く。モデルへの JSON Schema 化と引数の検証は `defineTool` が行う。
   - handler は async でもよく、オブジェクトを返すと JSON にしてモデルに返る。例外もツール結果としてモデルに返る。
+  - 画像を見せたいときは base64 の data URL（jpeg/png/gif/webp）の文字列だけを返す。backend が画像としてモデルに渡す（送るのは最新の1枚だけ）。例: `tools/capture-map.ts`
 - UI ステートを足す: `src/lib/agent/ui-state.svelte.ts` の `uiState` に項目を足すと、毎回 backend の system prompt に載る。
   - 全部プロンプトに入るので、GeoJSON などの大きなデータは入れず、ID や属性だけにする。詳細は backend tool で取らせる。
   - モジュール共有の状態なので、SSR 中（load やサーバー処理）に書き換えない。

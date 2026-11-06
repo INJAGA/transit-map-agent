@@ -19,10 +19,11 @@ from ag_ui_langgraph import LangGraphAgent
 from langchain.agents import create_agent
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
+from langchain_core.messages import ToolMessage as LCToolMessage
 from langchain_core.outputs import ChatGenerationChunk
 from langgraph.checkpoint.memory import InMemorySaver
 
-from agent import FrontendToolsMiddleware, get_current_time
+from agent import FrontendToolsMiddleware, _images_to_user, get_current_time
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -127,3 +128,48 @@ def test_frontend_tool_stops_then_resumes() -> None:
         if e.type == EventType.TEXT_MESSAGE_CONTENT
     )
     assert text == "変えた"
+
+
+def test_images_to_user() -> None:
+    """Tool 結果の画像は tool 結果の並びの後ろに user メッセージとして移す."""
+    url = "data:image/jpeg;base64,AAAA"
+    ai = AIMessage(
+        content="",
+        tool_calls=[
+            {"id": "1", "name": "capture_map", "args": {}},
+            {"id": "2", "name": "set_page_title", "args": {}},
+        ],
+    )
+    out = _images_to_user(
+        [
+            ai,
+            LCToolMessage(content=url, tool_call_id="1"),
+            LCToolMessage(content="ok", tool_call_id="2"),
+        ]
+    )
+    assert [m.type for m in out] == ["ai", "tool", "tool", "human"]
+    assert url not in str(out[1].content)
+    assert out[3].content[1] == {"type": "image_url", "image_url": {"url": url}}
+
+
+def test_images_to_user_ignores_invalid_data_url() -> None:
+    """形式が不正な data URL は画像にせず、そのまま tool 結果として残す."""
+    bad = "data:image/jpeg;base64,!!invalid"
+    out = _images_to_user([LCToolMessage(content=bad, tool_call_id="1")])
+    assert [m.type for m in out] == ["tool"]
+    assert out[0].content == bad
+
+
+def test_images_to_user_sends_only_latest_image() -> None:
+    """画像は最後の1枚だけ送り、古い画像は文字に置き換える."""
+    old, new = "data:image/jpeg;base64,AAAA", "data:image/png;base64,BBBB"
+    out = _images_to_user(
+        [
+            LCToolMessage(content=old, tool_call_id="1"),
+            AIMessage(content="見ました"),
+            LCToolMessage(content=new, tool_call_id="2"),
+        ]
+    )
+    assert [m.type for m in out] == ["tool", "ai", "tool", "human"]
+    assert old not in str(out)
+    assert out[3].content[1] == {"type": "image_url", "image_url": {"url": new}}

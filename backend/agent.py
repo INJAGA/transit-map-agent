@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from collections.abc import Awaitable, Callable  # noqa: TC003 langsmith が実行時に注釈を評価する
 from datetime import datetime
 from typing import Any, NotRequired
@@ -16,7 +17,7 @@ from langchain.agents.middleware import (
     hook_config,
 )
 from langchain.tools import tool
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.runtime import Runtime  # noqa: TC002 同上
@@ -31,6 +32,46 @@ class FrontendState(AgentState):
     ui_state: NotRequired[dict[str, Any]]  # 画面の現在の状態
 
 
+# DeepSeek が受け付ける形式の base64 だけ画像にする. 不正な値を送ると API が拒否し、
+# 履歴に残るので以後のターンも失敗し続ける
+_IMAGE_DATA_URL = re.compile(
+    r"data:image/(jpeg|png|gif|webp);base64,[A-Za-z0-9+/]+={0,2}"
+)
+
+
+def _images_to_user(messages: list[AnyMessage]) -> list[AnyMessage]:
+    """Tool 結果の画像 (data URL) を直後の user メッセージに移す.
+
+    DeepSeek は画像を user メッセージでしか受け取らない. 送る分だけ変え、state は残す.
+    送るのは最後の1枚だけ. 全部だと毎ターンのトークンとリクエストが膨らみ続ける.
+    """
+    is_image = [
+        isinstance(m, ToolMessage)
+        and isinstance(m.content, str)
+        and _IMAGE_DATA_URL.fullmatch(m.content) is not None
+        for m in messages
+    ]
+    last = max((i for i, b in enumerate(is_image) if b), default=-1)
+    out: list[AnyMessage] = []
+    pending: HumanMessage | None = None
+    for i, m in enumerate(messages):
+        # tool 結果の並びの途中に user を挟むと API が拒否するので、並びの後に足す
+        if pending and not isinstance(m, ToolMessage):
+            out.append(pending)
+            pending = None
+        if i == last:
+            image = {"type": "image_url", "image_url": {"url": m.content}}
+            text = {"type": "text", "text": "ツールで取得した画像:"}
+            pending = HumanMessage(content=[text, image])
+            m = m.model_copy(update={"content": "画像を次のメッセージに添付しました"})  # noqa: PLW2901
+        elif is_image[i]:
+            m = m.model_copy(update={"content": "(古い画像は省略)"})  # noqa: PLW2901
+        out.append(m)
+    if pending:
+        out.append(pending)
+    return out
+
+
 def _with_frontend(request: ModelRequest) -> ModelRequest:
     """Frontend tools をバインドし、UI ステートを system prompt に足す."""
     frontend_tools = [
@@ -38,6 +79,7 @@ def _with_frontend(request: ModelRequest) -> ModelRequest:
     ]
     ui_state = json.dumps(request.state.get("ui_state", {}), ensure_ascii=False)
     return request.override(
+        messages=_images_to_user(request.messages),
         tools=[*request.tools, *frontend_tools],
         system_prompt=(
             f"{request.system_prompt}\n\n"
@@ -92,7 +134,8 @@ def get_current_time() -> str:
 graph = create_agent(
     # DeepSeek は OpenAI 互換 API なので ChatOpenAI の base_url を差し替えて使う
     model=ChatOpenAI(
-        model="deepseek-chat",
+        # 画像を受け取れるのは deepseek-flash だけ (capture_map で地図の画像を送る)
+        model="deepseek-flash",
         base_url="https://api.deepseek.com",
         # キーがなくても import は通す (frontend の型生成が main.py を読み込むため).
         # 未設定なら質問したときに認証エラーになる
