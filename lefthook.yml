@@ -10,6 +10,10 @@ pre-commit:
       root: backend/
       glob: ["backend/*.py", "backend/**/*.py", "backend/pyproject.toml", "backend/uv.lock"]
       run: uv run ty check
+    - name: backend-pytest
+      root: backend/
+      glob: ["backend/*.py", "backend/**/*.py", "backend/pyproject.toml", "backend/uv.lock"]
+      run: uv run pytest -q
     - name: frontend-check
       glob:
         - "frontend/src/**"

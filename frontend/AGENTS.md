@@ -6,6 +6,18 @@
 - UI コンポーネントは daisyUI にあるものを積極的に使う。
 - アイコンは UI に積極的に使い、Tabler Icons から直感的なものを選ぶ。書き方は `<span class="icon-[tabler--home]"></span>`。
 
+## エージェント（AG-UI）
+
+画面から `/api/agent`（BFF）経由で backend の LangChain エージェントに質問する。コードは `src/lib/agent/` にまとめてある。
+
+- frontend tool（ブラウザで実行するツール）を足す: `src/lib/agent/tools/` に1ツール1ファイルで作り、`defineTool` で書いて `tools/index.ts` の `frontendTools` に追加する。
+  - スキーマは Zod で書く。モデルへの JSON Schema 化と引数の検証は `defineTool` が行う。
+  - handler は async でもよく、オブジェクトを返すと JSON にしてモデルに返る。例外もツール結果としてモデルに返る。
+- UI ステートを足す: `src/lib/agent/ui-state.svelte.ts` の `uiState` に項目を足すと、毎回 backend の system prompt に載る。
+  - 全部プロンプトに入るので、GeoJSON などの大きなデータは入れず、ID や属性だけにする。詳細は backend tool で取らせる。
+  - モジュール共有の状態なので、SSR 中（load やサーバー処理）に書き換えない。
+- backend tool（Python で実行するツール）は `backend/agent.py` の `tools=[...]` に足す。
+
 ## Svelte MCP
 
 出典: https://svelte.dev/docs/ai/instructions を日本語化したもの。

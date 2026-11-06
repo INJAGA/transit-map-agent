@@ -8,7 +8,11 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "ag-ui-langgraph>=0.0.47",
     "fastapi[standard]>=0.162.0",
+    "langchain>=1.4.9",
+    "langchain-openai>=1.7.4",
+    "python-dotenv>=1.2.4",
 ]
 
 [tool.ty.environment]
@@ -23,8 +27,13 @@ ignore = [
     "CPY001",       # 全ファイルに著作権表記を書く運用はしない
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# pytest は assert で書く. 偽モデルは LangChain の親クラスの Any 引数に合わせる
+"test_*.py" = ["S101", "ANN401"]
+
 [dependency-groups]
 dev = [
+    "pytest>=9.2.0",
     "ruff>=0.17.3",
     "ty>=0.0.97",
 ]
