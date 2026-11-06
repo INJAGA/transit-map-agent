@@ -11,10 +11,18 @@ pre-commit:
       glob: ["backend/*.py", "backend/**/*.py", "backend/pyproject.toml", "backend/uv.lock"]
       run: uv run ty check
     - name: frontend-check
-      root: frontend/
-      glob: &fe ["frontend/src/**", "frontend/*.json", "frontend/*.ts", "frontend/*.js"]
-      run: npm run check
+      glob:
+        - "frontend/src/**"
+        - "frontend/scripts/**"
+        - "frontend/*.json"
+        - "frontend/*.ts"
+        - "frontend/*.js"
+        - "backend/*.py"
+        - "backend/**/*.py"
+        - "backend/pyproject.toml"
+        - "backend/uv.lock"
+      run: cd frontend && npm run check
     - name: frontend-lint
       root: frontend/
-      glob: *fe
+      glob: ["frontend/src/**", "frontend/scripts/**", "frontend/*.json", "frontend/*.ts", "frontend/*.js"]
       run: npm run lint

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
 	let count = $state(0);
 </script>
 
@@ -11,6 +14,20 @@
 	<div role="alert" class="alert alert-info">
 		<span class="icon-[tabler--info-circle] size-6"></span>
 		<span>daisyUI と Iconify（Tabler Icons）のサンプルです。</span>
+	</div>
+
+	<div
+		role="status"
+		class="alert"
+		class:alert-success={data.health !== null}
+		class:alert-warning={data.health === null}
+	>
+		<span class="icon-[tabler--heartbeat] size-6"></span>
+		<span
+			>{data.health
+				? `API の状態: ${data.health.status}`
+				: 'API に接続できません。カウンターは引き続き利用できます。'}</span
+		>
 	</div>
 
 	<div class="card bg-base-200 shadow">

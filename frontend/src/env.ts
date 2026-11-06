@@ -1,0 +1,5 @@
+import { defineEnvVars } from '@sveltejs/kit/env';
+
+export const variables = defineEnvVars({
+	BACKEND_URL: { schema: (value) => value || 'http://127.0.0.1:8000' }
+});
