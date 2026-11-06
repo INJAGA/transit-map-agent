@@ -4,5 +4,7 @@
  */
 export const uiState = $state({
 	pageTitle: 'Welcome to SvelteKit',
-	count: 0
+	count: 0,
+	// 地図の表示中心と拡大率. 初期値は静岡駅
+	mapView: { longitude: 138.3891, latitude: 34.9717, zoom: 15 }
 });

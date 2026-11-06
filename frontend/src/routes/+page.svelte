@@ -3,6 +3,7 @@
 	import { run } from '#lib/agent/run.svelte.js';
 	import { frontendTools } from '#lib/agent/tools/index.js';
 	import { uiState } from '#lib/agent/ui-state.svelte.js';
+	import MapView from '#lib/components/MapView.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -35,16 +36,15 @@
 	<title>{uiState.pageTitle}</title>
 </svelte:head>
 
-<main class="mx-auto flex max-w-xl flex-col gap-6 p-8">
-	<h1 class="flex items-center gap-2 text-3xl font-bold">
+<MapView />
+
+<main
+	class="absolute top-4 left-4 flex max-h-[calc(100dvh-2rem)] w-[min(28rem,calc(100vw-2rem))] flex-col gap-4 overflow-y-auto"
+>
+	<h1 class="flex items-center gap-2 rounded-box bg-base-100/90 p-4 text-2xl font-bold shadow">
 		<span class="icon-[tabler--brand-svelte] text-primary"></span>
 		{uiState.pageTitle}
 	</h1>
-
-	<div role="alert" class="alert alert-info">
-		<span class="icon-[tabler--info-circle] size-6"></span>
-		<span>daisyUI と Iconify（Tabler Icons）のサンプルです。</span>
-	</div>
 
 	<div
 		role="status"
@@ -114,7 +114,7 @@
 			<form class="join w-full" onsubmit={send}>
 				<input
 					class="input join-item w-full"
-					placeholder="例: ページタイトルを面白いものに変更して"
+					placeholder="例: 名古屋城を表示して"
 					aria-label="アシスタントへの質問"
 					bind:value={prompt}
 					disabled={running}

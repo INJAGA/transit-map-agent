@@ -54,6 +54,9 @@
 	},
 	"dependencies": {
 		"@ag-ui/client": "^1.0.4",
+		"@deck.gl/core": "^9.4.1",
+		"@deck.gl/mapbox": "^9.4.1",
+		"maplibre-gl": "^6.16.0",
 		"zod": "^4.6.7"
 	}
 }

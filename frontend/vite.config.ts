@@ -19,6 +19,8 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
+	// 事前バンドルすると maplibre が隣のファイルとして読む worker が見つからなくなる
+	optimizeDeps: { exclude: ['maplibre-gl'] },
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
