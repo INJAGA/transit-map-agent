@@ -63,8 +63,10 @@ You can preview the production build with `npm run preview`.
 
 SDK はサーバー専用です。`+page.server.ts` の例のように SDK に `backend(fetch)` を渡し、load の戻り値をページで使います。ブラウザーからは SvelteKit にアクセスし、FastAPI の URL を知る必要はありません。更新処理は form actions などに実装します。
 
+表示中に何度も取り直すデータは、`src/routes/api/h3-counts/+server.ts` の例のように `+server.ts` のエンドポイントで SDK を呼び、ブラウザーから fetch します（地図の H3 セルはズームで解像度が変わるたびに取り直します）。backend の 4xx/5xx はそのステータスのまま返し、backend に繋がらないときは 502 を返します。
+
 接続先は `.env.example` を参考に `BACKEND_URL` で設定します。既定値は `http://127.0.0.1:8000`。実行時は backend を別途起動してください。トップページに接続状態を表示し、接続失敗時もカウンターは利用できます。ヘルスチェックは3秒でタイムアウトします。
 
-`npm test` で SDK 経由の取得成功・接続失敗・HTTP エラー・タイムアウトを確認します。
+`npm test` で SDK 経由の取得成功・接続失敗・HTTP エラー・タイムアウトと、`/api/h3-counts` の入力チェック・ステータスの中継を確認します。
 
 Vitest は `sv add vitest="usages:unit"` で導入しています。`npm test` で一括実行、`npm run test:unit` で watch 実行します。どちらも実行前に SDK を生成します。

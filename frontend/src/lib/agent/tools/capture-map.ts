@@ -10,8 +10,9 @@ export const mapHolder: { map?: Map; overlay?: MapboxOverlay } = {};
 export const captureMap = defineTool({
 	name: 'capture_map',
 	description:
-		'今画面に表示している地図 (ベースマップと交通レイヤー) を画像にして見る. 地図に何が描かれているか答えるときに使う. 地図を変えるツールと同じ返答では呼ばず、その結果を受け取ってから呼ぶ (同時だと変更前の地図が写る). 交通レイヤーの凡例: ' +
-		transitLayers.map((l) => `${l.label}=rgb(${l.color.join(',')}) の${l.shape}`).join(', '),
+		'今画面に表示している地図 (ベースマップと H3 セルと交通レイヤー) を画像にして見る. 地図に何が描かれているか答えるときに使う. 地図を変えるツールと同じ返答では呼ばず、その結果を受け取ってから呼ぶ (同時だと変更前の地図が写る). 交通レイヤーの凡例: ' +
+		transitLayers.map((l) => `${l.label}=rgb(${l.color.join(',')}) の${l.shape}`).join(', ') +
+		'. 交通レイヤーの下の赤い六角形は H3 セルごとの件数で、赤が濃いほど件数が多い (表示中の最大件数で正規化). 拡大するほど細かいセルになる',
 	schema: z.object({}),
 	handler: async () => {
 		const { map, overlay } = mapHolder;
