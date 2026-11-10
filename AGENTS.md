@@ -8,6 +8,7 @@
 
 - `backend/` — FastAPI（uv, Python 3.14）。起動: `cd backend && uv run fastapi dev main.py`
 - `frontend/` — SvelteKit（TypeScript, npm）。起動: `cd frontend && npm run dev`
+- 両方まとめて起動: ルートで `npm run dev`（片方だけなら `npm run dev:backend` / `npm run dev:frontend`）。片方が落ちてももう片方は動き続けるので、API が失敗したらログを遡って確認する
 - コードを変えたら完了前にチェックを通す（コミット時にも lefthook で同じものが走る）:
   - backend: `cd backend && uv run ruff check . && uv run ruff format --check . && uv run ty check && uv run pytest`
   - frontend: `cd frontend && npm run check && npm run lint`（整形は `npm run format`）
