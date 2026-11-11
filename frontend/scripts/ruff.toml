@@ -1,0 +1,10 @@
+# backend と同じ規則で見る. 手で1回走らせる使い捨てスクリプトなので、合わないものだけ外す
+extend = "../../backend/pyproject.toml"
+
+[lint]
+extend-ignore = [
+    "INP001", # パッケージではなく単体のスクリプト
+    "T201",   # 進捗を print で出す
+    "S101",   # 入力データの前提を assert で確かめる
+    "D103",   # 小さな関数ごとに docstring は書かない
+]

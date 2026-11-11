@@ -4,17 +4,33 @@ pre-commit:
   jobs:
     - name: backend-ruff
       root: backend/
-      glob: ["backend/*.py", "backend/**/*.py", "backend/pyproject.toml"]
+      glob:
+        - "backend/*.py"
+        - "backend/**/*.py"
+        - "backend/pyproject.toml"
       run: uv run ruff check . && uv run ruff format --check .
     - name: backend-ty
       root: backend/
-      glob: ["backend/*.py", "backend/**/*.py", "backend/pyproject.toml", "backend/uv.lock"]
+      glob: &backend
+        - "backend/*.py"
+        - "backend/**/*.py"
+        - "backend/pyproject.toml"
+        - "backend/uv.lock"
       run: uv run ty check
     - name: backend-pytest
       root: backend/
-      glob: ["backend/*.py", "backend/**/*.py", "backend/pyproject.toml", "backend/uv.lock"]
+      glob: *backend
       run: uv run pytest -q
-    - name: frontend-check
+    # frontend の Python スクリプトも backend の固定した ruff で見る(設定は frontend/scripts/ruff.toml)
+    # root: を付けると backend/ 外のファイルで発火しなくなるので cd で移る
+    - name: frontend-scripts-ruff
+      glob:
+        - "frontend/scripts/*.py"
+        - "frontend/scripts/ruff.toml"
+        - "backend/pyproject.toml"
+      run: cd backend && uv run ruff check ../frontend/scripts && uv run ruff format --check ../frontend/scripts
+    # generate:api が backend の OpenAPI を読むので backend の変更でも走らせる
+    - name: frontend-check-test
       glob:
         - "frontend/src/**"
         - "frontend/scripts/**"
@@ -25,8 +41,23 @@ pre-commit:
         - "backend/**/*.py"
         - "backend/pyproject.toml"
         - "backend/uv.lock"
-      run: cd frontend && npm run check
+      # 並列ジョブ同士で generate:api が同じファイルに書き込まないよう、テストもここで続けて走らせる
+      run: cd frontend && npm run check && npx vitest run
     - name: frontend-lint
       root: frontend/
-      glob: ["frontend/src/**", "frontend/scripts/**", "frontend/*.json", "frontend/*.ts", "frontend/*.js"]
+      glob:
+        - "frontend/src/**"
+        - "frontend/scripts/**"
+        - "frontend/*.json"
+        - "frontend/*.ts"
+        - "frontend/*.js"
       run: npm run lint
+    # ルート直下の設定ファイルは frontend の prettier で整形を確かめる
+    - name: root-prettier
+      glob:
+        - "package.json"
+        - "lefthook.yml"
+        - "AGENTS.md"
+        - "fastapi-sveltekit.code-workspace"
+        - ".claude/settings.json"
+      run: frontend/node_modules/.bin/prettier --check {staged_files}
