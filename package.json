@@ -1,4 +1,5 @@
 {
+  "name": "transit-map-agent",
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
