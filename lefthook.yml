@@ -58,6 +58,7 @@ pre-commit:
         - "package.json"
         - "lefthook.yml"
         - "AGENTS.md"
-        - "fastapi-sveltekit.code-workspace"
+        - "README.md"
+        - "transit-map-agent.code-workspace"
         - ".claude/settings.json"
       run: frontend/node_modules/.bin/prettier --check {staged_files}
