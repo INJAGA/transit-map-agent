@@ -1,0 +1,6 @@
+packages:
+  - frontend
+engineStrict: true
+# lefthook の postinstall は不要(フックはルートの prepare で登録する)
+allowBuilds:
+  lefthook: false

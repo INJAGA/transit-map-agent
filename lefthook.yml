@@ -35,6 +35,7 @@ pre-commit:
         - "frontend/src/**"
         - "frontend/scripts/**"
         - "frontend/*.json"
+        - "pnpm-lock.yaml"
         - "frontend/*.ts"
         - "frontend/*.js"
         - "backend/*.py"
@@ -42,7 +43,7 @@ pre-commit:
         - "backend/pyproject.toml"
         - "backend/uv.lock"
       # 並列ジョブ同士で generate:api が同じファイルに書き込まないよう、テストもここで続けて走らせる
-      run: cd frontend && npm run check && npx vitest run
+      run: cd frontend && pnpm check && pnpm exec vitest run
     - name: frontend-lint
       root: frontend/
       glob:
@@ -51,7 +52,8 @@ pre-commit:
         - "frontend/*.json"
         - "frontend/*.ts"
         - "frontend/*.js"
-      run: npm run lint
+        - "pnpm-lock.yaml"
+      run: pnpm lint
     # ルート直下の設定ファイルは frontend の prettier で整形を確かめる
     - name: root-prettier
       glob:
@@ -61,4 +63,5 @@ pre-commit:
         - "README.md"
         - "transit-map-agent.code-workspace"
         - ".claude/settings.json"
+        - "pnpm-workspace.yaml"
       run: frontend/node_modules/.bin/prettier --check {staged_files}
