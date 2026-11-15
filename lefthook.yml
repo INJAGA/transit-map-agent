@@ -44,8 +44,8 @@ pre-commit:
         - "backend/uv.lock"
       # 並列ジョブ同士で generate:api が同じファイルに書き込まないよう、テストもここで続けて走らせる
       run: cd frontend && pnpm check && pnpm exec vitest run
+    # root: を付けると frontend/ 外のファイル(ルートの pnpm-lock.yaml)で発火しなくなるので cd で移る
     - name: frontend-lint
-      root: frontend/
       glob:
         - "frontend/src/**"
         - "frontend/scripts/**"
@@ -53,7 +53,7 @@ pre-commit:
         - "frontend/*.ts"
         - "frontend/*.js"
         - "pnpm-lock.yaml"
-      run: pnpm lint
+      run: cd frontend && pnpm lint
     # ルート直下の設定ファイルは frontend の prettier で整形を確かめる
     - name: root-prettier
       glob:
